@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="inertial_macros.xacro"/>
+
+  <!-- Approximate Waveshare UGV dimensions, in metres -->
+  <xacro:property name="chassis_length" value="0.30"/>
+  <xacro:property name="chassis_width" value="0.17"/>
+  <xacro:property name="chassis_height" value="0.10"/>
+  <xacro:property name="chassis_mass" value="3.0"/>
+
+  <xacro:property name="wheel_radius" value="0.04"/>
+  <xacro:property name="wheel_thickness" value="0.035"/>
+  <xacro:property name="wheel_mass" value="0.15"/>
+
+  <!-- Wheel centers: x = +0.125, 0, -0.125; y = +/- 0.085 -->
+  <xacro:property name="wheel_x_front" value="0.125"/>
+  <xacro:property name="wheel_x_middle" value="0.0"/>
+  <xacro:property name="wheel_x_rear" value="-0.125"/>
+  <xacro:property name="wheel_y" value="0.085"/>
+
+  <!-- Materials -->
+  <material name="chassis_black">
+    <color rgba="0.12 0.13 0.14 1"/>
+  </material>
+
+  <material name="wheel_black">
+    <color rgba="0.08 0.08 0.08 1"/>
+  </material>
+
+  <!-- Base frames -->
+  <link name="base_link"/>
+
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.04" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Chassis -->
+  <link name="chassis">
+    <visual>
+      <origin xyz="0 0 0.065" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+      <material name="chassis_black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.065" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+
+    <xacro:inertial_box
+      mass="${chassis_mass}"
+      x="${chassis_length}"
+      y="${chassis_width}"
+      z="${chassis_height}">
+      <origin xyz="0 0 0.065" rpy="0 0 0"/>
+    </xacro:inertial_box>
+  </link>
+
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="chassis">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <!-- Reusable wheel macro.
+       Wheel cylinder axis is oriented along the axle (Y).
+       Every wheel has its own unique link and joint. -->
+  <xacro:macro name="ugv_wheel" params="name x y side">
+    <joint name="${name}_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${name}"/>
+      <origin xyz="${x} ${y} 0" rpy="${pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+        </geometry>
+        <material name="wheel_black"/>
+      </visual>
+
+      <collision>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_thickness}"/>
+        </geometry>
+      </collision>
+
+      <xacro:inertial_cylinder
+        mass="${wheel_mass}"
+        length="${wheel_thickness}"
+        radius="${wheel_radius}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="${name}">
+      <material>Gazebo/Black</material>
+      <mu1 value="1.0"/>
+      <mu2 value="1.0"/>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Left side: front and rear driven; middle passive -->
+  <xacro:ugv_wheel
+    name="front_left_wheel"
+    x="${wheel_x_front}" y="${wheel_y}" side="left"/>
+
+  <xacro:ugv_wheel
+    name="middle_left_wheel"
+    x="${wheel_x_middle}" y="${wheel_y}" side="left"/>
+
+  <xacro:ugv_wheel
+    name="rear_left_wheel"
+    x="${wheel_x_rear}" y="${wheel_y}" side="left"/>
+
+  <!-- Right side: front and rear driven; middle passive -->
+  <xacro:ugv_wheel
+    name="front_right_wheel"
+    x="${wheel_x_front}" y="${-wheel_y}" side="right"/>
+
+  <xacro:ugv_wheel
+    name="middle_right_wheel"
+    x="${wheel_x_middle}" y="${-wheel_y}" side="right"/>
+
+  <xacro:ugv_wheel
+    name="rear_right_wheel"
+    x="${wheel_x_rear}" y="${-wheel_y}" side="right"/>
+
+</robot>

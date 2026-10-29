@@ -1,45 +1,53 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <joint name="laser_joint" type="fixed">
         <parent link="chassis"/>
         <child link="laser_frame"/>
-        <origin xyz="0.122 0 0.212" rpy="0 0 0"/>
+        <origin xyz="0 0 0.12" rpy="0 0 0"/>
     </joint>
 
     <link name="laser_frame">
+        <!-- Main LiDAR body -->
         <visual>
             <geometry>
                 <cylinder radius="0.05" length="0.04"/>
             </geometry>
-            <material name="black"/>
+            <material name="lidar_grey">
+                <color rgba="0.5 0.5 0.5 1"/>
+            </material>
         </visual>
+
+        <!-- Mounting stem -->
         <visual>
-            <origin xyz="0 0 -0.05"/>
+            <origin xyz="0 0 -0.05" rpy="0 0 0"/>
             <geometry>
                 <cylinder radius="0.01" length="0.1"/>
             </geometry>
-            <material name="black"/>
+            <material name="lidar_grey">
+                <color rgba="0.5 0.5 0.5 1"/>
+            </material>
         </visual>
+
         <collision>
             <geometry>
                 <cylinder radius="0.05" length="0.04"/>
             </geometry>
         </collision>
+
         <xacro:inertial_cylinder mass="0.1" length="0.04" radius="0.05">
             <origin xyz="0 0 0" rpy="0 0 0"/>
         </xacro:inertial_cylinder>
     </link>
 
-
-
     <gazebo reference="laser_frame">
-        <material>Gazebo/Black</material>
+        <material>Gazebo/Grey</material>
 
         <sensor name="laser" type="ray">
-            <pose> 0 0 0 0 0 0 </pose>
+            <pose>0 0 0 0 0 0</pose>
             <visualize>false</visualize>
             <update_rate>10</update_rate>
+
             <ray>
                 <scan>
                     <horizontal>
@@ -53,7 +61,9 @@
                     <max>12</max>
                 </range>
             </ray>
-            <plugin name="laser_controller" filename="libgazebo_ros_ray_sensor.so">
+
+            <plugin name="laser_controller"
+                    filename="libgazebo_ros_ray_sensor.so">
                 <ros>
                     <argument>~/out:=scan</argument>
                 </ros>
